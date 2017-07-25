@@ -32,7 +32,7 @@ describe('server', function() {
       done();
     });
   });
-
+  
   it('should accept POST requests to /classes/messages', function(done) {
     var requestParams = {method: 'POST',
       uri: 'http://127.0.0.1:3000/classes/messages',
@@ -73,5 +73,37 @@ describe('server', function() {
     });
   });
 
+  it('should handle OPTIONS requests to /classes/messages', function(done) {
+    var requestParams = {method: 'OPTIONS',
+      uri: 'http://127.0.0.1:3000/classes/messages',
+      json: {
+        username: 'Jono',
+        message: 'Do my bidding'}
+    };
+    
+    request(requestParams, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      done();
+    });
+  });
+  
+  it('should respond with messages with an objectId', function(done) {
+    var requestParams = {method: 'POST',
+      uri: 'http://127.0.0.1:3000/classes/messages',
+      json: {
+        username: 'Jono',
+        message: 'Do my bidding!'}
+    };
+
+    request(requestParams, function(error, response, body) {
+      // Now if we request the log, that message we posted should be there:
+      request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
+        var messages = JSON.parse(body).results;
+        console.log(messages);
+        expect(messages[0].objectId).to.equal(0);
+        done();
+      });
+    });
+  });
 
 });

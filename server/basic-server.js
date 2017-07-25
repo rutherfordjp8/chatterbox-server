@@ -1,6 +1,6 @@
 /* Import node's http module: */
 var http = require('http');
-var handler = require('/Users/student/Desktop/hrsf80-chatterbox-server/server/request-handler.js');
+var handler = require('/Users/student/hrsf80-chatterbox-server/server/request-handler.js');
 var handleRequest = handler.requestHandler;
 // Every server needs to listen on a port with a unique number. The
 // standard port for HTTP servers is port 80, but that port is

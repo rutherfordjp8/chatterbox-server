@@ -1,3 +1,4 @@
+var fs = require('fs');
 /*************************************************************
 
 You should implement your request handler function in this file.
@@ -19,6 +20,22 @@ var defaultCorsHeaders = {
 };
 
 var messages = [];
+objFormatter = function(string) {
+  var objStr = '{"';
+  for (var i = 0; i < string.length; i++) {
+    if (string[i] === '=') {
+      objStr += '":"';
+    } else if (string[i] === '&') {
+      objStr += '","';
+    } else {
+      objStr += string[i];
+    }
+      
+  } 
+  
+  objStr += '", "objectId":"' + messages.length + '"}';
+  return objStr;
+};
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -51,26 +68,48 @@ var requestHandler = function(request, response) {
     response.writeHead(200, headers);
     response.end();
   } else {
-//...other requests
+    //...other requests
 
+    var headers = defaultCorsHeaders;
+
+    headers['Content-Type'] = 'application/json';
+    //function to turn message string into an object format 
 
     var statusCode;
-    if (request.url !== '/classes/messages' || request.url !== '/?order=-createdAt') {
+    if (request.url !== '/classes/messages' && request.url !== '/?order=-createdAt' && request.url !== '/' || request.url === undefined) {
       statusCode = 404;
+      console.log('*********** DENIED ************');
     } else if (request.method === 'GET') {
       statusCode = 200;
+    
+      
     } else if (request.method === 'POST') {
       statusCode = 201;
-      var body = [];
+      
+  
+      var body = '';
       request.on('data', (chunk) => {
         console.log(chunk);
-        body.push(chunk);
+        body += chunk;
       });
       request.on('end', () => {
       // body = Buffer.concat(body).toString();
+        console.log('Almost Complete Buffer: ' + body + ' Type of: ' + typeof body);
+        if (body[0] !== '{') {
+          body = objFormatter(body);
+        }
         body = JSON.parse(body); 
-        console.log(body);
+        if (!body.hasOwnProperty('objectId')) {
+          body['objectId'] = messages.length;
+        }
+        console.log('Completed Buffer: ' + JSON.stringify(body));
+        
         messages.push(body);
+        
+
+        response.writeHead(statusCode, headers);
+
+        response.end(JSON.stringify({results: messages}));
       // at this point, `body` has the entire request body stored in it as a string
       });
 
@@ -88,9 +127,7 @@ var requestHandler = function(request, response) {
       statusCode = 201;
     } else if (request.method === 'DELETE') {
       statusCode = 201;
-    } else if (request.method === 'OPTIONS') {
-      statusCode = 201;
-    }
+    } 
   
   // See the note below about CORS headers.
     var headers = defaultCorsHeaders;
